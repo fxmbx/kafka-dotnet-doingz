@@ -14,8 +14,9 @@ namespace RealTimeExample.Events.Email.Handler
         public Task HandleAsync(string key, EmailMessage value)
         {
             //write code to send email
+            Console.WriteLine($"To: {value?.To}\n Subject: {value?.Subject}");
 
-            _producer.ProduceAsync("email_sent", value.To, new EmailMessage { To = value.To });
+            _producer.ProduceAsync("email_sent", value?.To, new EmailMessage { To = value?.To });
 
             return Task.CompletedTask;
         }

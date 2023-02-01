@@ -19,6 +19,7 @@ internal class Program
             GroupId = "kafka-dotnet-doingz-consumer-group",
             AutoOffsetReset = AutoOffsetReset.Earliest,
 
+
             EnableAutoCommit = true,
             StatisticsIntervalMs = 5000,
             SessionTimeoutMs = 6000,
@@ -34,7 +35,7 @@ internal class Program
             cancellationToken.Cancel();
         };
 
-        using (var consumer = new ConsumerBuilder<Ignore, EmailMessage>(consumerConfig)
+        using (var consumer = new ConsumerBuilder<string, EmailMessage>(consumerConfig)
         .SetValueDeserializer(new EmailMessage())
         .SetLogHandler((_, logHandler) => { System.Console.WriteLine(logHandler.Message); })
         .SetErrorHandler((_, errorHandler) => { System.Console.WriteLine(errorHandler.Reason); })
@@ -46,7 +47,7 @@ internal class Program
                 while (true)
                 {
                     var result = consumer.Consume(cancellationToken.Token);
-                    System.Console.WriteLine($"Consumes event from topic {topicName} with key {result.TopicPartitionOffset} and value {result.Message.Value}");
+                    System.Console.WriteLine($"Consumes event from topic {topicName} with key {result.Message.Key} and value {result.Message.Value}");
 
                 }
             }

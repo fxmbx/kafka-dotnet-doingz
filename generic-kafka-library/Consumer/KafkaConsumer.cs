@@ -21,14 +21,14 @@ namespace generic_kafka_library.Consumer
             _serviceScopeFactory = serviceScopeFactory;
         }
 
-        public async Task Consume(string topic, CancellationToken stoppingToken)
+        public async Task Consume(string topic, CancellationToken cancellationToken)
         {
             using var scope = _serviceScopeFactory.CreateScope();
             _kafkaHandler = scope.ServiceProvider.GetRequiredService<IKafkaHandler<TKey, TValue>>();
             _consumer = new ConsumerBuilder<TKey, TValue>(consumerConfig).SetValueDeserializer(new KafkaDeserializer<TValue>()).Build();
             topicName = topic;
 
-            await Task.Run(() => StartConsumerLoop(stoppingToken), stoppingToken);
+            await Task.Run(() => StartConsumerLoop(cancellationToken), cancellationToken);
         }
 
         private async Task StartConsumerLoop(CancellationToken cancellationToken)

@@ -1,7 +1,10 @@
 using Confluent.Kafka;
 using generic_kafka_library.Consumer;
 using generic_kafka_library.Interface;
+using generic_kafka_library.Messages;
 using generic_kafka_library.Producer;
+using RealTimeExample.Events.Email.Consumers;
+using RealTimeExample.Events.Email.Handler;
 
 var builder = WebApplication.CreateBuilder(args);
 ConfigurationManager configuration = builder.Configuration;
@@ -15,13 +18,19 @@ builder.Services.AddSwaggerGen();
 
 var clientConfig = new ClientConfig()
 {
-    BootstrapServers = configuration["Kafka:ClientConfigs:BootstrapServers"]
+    SecurityProtocol = SecurityProtocol.SaslSsl,
+    SaslMechanism = SaslMechanism.Plain,
+    BootstrapServers = configuration["Kafka:ClientConfigs:BootstrapServers"],
+    SaslUsername = configuration["Kafka:ClientConfigs:SaslUsername"],
+    SaslPassword = configuration["Kafka:ClientConfigs:SaslPassword"],
+
+
 };
 
 var producerConfig = new ProducerConfig(clientConfig);
 var consumerConfig = new ConsumerConfig(clientConfig)
 {
-    GroupId = "pkc-l6wr6.europe-west2.gcp.confluent.cloud:9092",
+    GroupId = "kafka-dotnet-doingz-consumer-group",
     EnableAutoCommit = true,
     AutoOffsetReset = AutoOffsetReset.Earliest,
     StatisticsIntervalMs = 5000,
@@ -33,6 +42,11 @@ builder.Services.AddSingleton(consumerConfig);
 
 builder.Services.AddSingleton(typeof(IKafkaProducer<,>), typeof(KafkaProducer<,>));
 builder.Services.AddSingleton(typeof(IKafkaConsumer<,>), typeof(KafkaConsumer<,>));
+
+builder.Services.AddScoped<IKafkaHandler<string, EmailMessage>, EmailHandler>();
+
+builder.Services.AddHostedService<EmailConsumer>();
+
 
 
 
