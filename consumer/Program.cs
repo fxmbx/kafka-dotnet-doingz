@@ -1,7 +1,9 @@
 ﻿using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using System.Text.Json;
 using Confluent.Kafka;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 
 internal class Program
 {
@@ -17,7 +19,6 @@ internal class Program
             GroupId = "kafka-dotnet-doingz-consumer-group",
             AutoOffsetReset = AutoOffsetReset.Earliest,
 
-            EnableAutoOffsetStore = false,
             EnableAutoCommit = true,
             StatisticsIntervalMs = 5000,
             SessionTimeoutMs = 6000,
@@ -69,17 +70,13 @@ class EmailMessage : ISerializer<EmailMessage>, IDeserializer<EmailMessage>
 
     public EmailMessage Deserialize(ReadOnlySpan<byte> data, bool isNull, SerializationContext context)
     {
-        return JsonSerializer.Deserialize<EmailMessage>(data.ToArray());
+        var json = Encoding.UTF8.GetString(data);
+        return JsonConvert.DeserializeObject<EmailMessage>(json);
     }
 
     public byte[] Serialize(EmailMessage data, SerializationContext context)
     {
-        using var ms = new MemoryStream();
-
-        string jsonString = JsonSerializer.Serialize(data);
-        var writer = new StreamWriter(ms);
-        writer.Write(jsonString);
-        ms.Position = 0;
-        return ms.ToArray();
+        var json = JsonConvert.SerializeObject(data);
+        return Encoding.UTF8.GetBytes(json);
     }
 }

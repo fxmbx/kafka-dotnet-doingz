@@ -3,6 +3,9 @@ using System.Text.Json.Serialization;
 using Confluent.Kafka;
 using Microsoft.Extensions.Configuration;
 using System.Text.Json;
+using Newtonsoft.Json;
+using System.Text;
+
 internal class Program
 {
     private static void Main(string[] args)
@@ -62,17 +65,13 @@ class EmailMessage : ISerializer<EmailMessage>, IDeserializer<EmailMessage>
 
     public EmailMessage Deserialize(ReadOnlySpan<byte> data, bool isNull, SerializationContext context)
     {
-        return JsonSerializer.Deserialize<EmailMessage>(data.ToArray());
+        var json = Encoding.UTF8.GetString(data);
+        return JsonConvert.DeserializeObject<EmailMessage>(json);
     }
 
     public byte[] Serialize(EmailMessage data, SerializationContext context)
     {
-        using var ms = new MemoryStream();
-
-        string jsonString = JsonSerializer.Serialize(data);
-        var writer = new StreamWriter(ms);
-        writer.Write(jsonString);
-        ms.Position = 0;
-        return ms.ToArray();
+        var json = JsonConvert.SerializeObject(data);
+        return Encoding.UTF8.GetBytes(json);
     }
 }
